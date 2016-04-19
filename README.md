@@ -2,8 +2,8 @@
 
 ###Compile
 #####Windows:
--Open the project file in Visual Studio
--Compile
+- Open the project file in Visual Studio
+- Compile
 #####Linux:
 ```bash
 git clone https://github.com/Dromaius/8051_ASM

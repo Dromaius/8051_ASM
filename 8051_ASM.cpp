@@ -715,7 +715,7 @@ int main(int argc, char* argv[]) {
 	else
 	{
 		char a[256];
-		cout << "HEX File PATH: ";
+		cout << "HEX File path: ";
 		cin >> a;
 		read_HEX(a);
 	}
