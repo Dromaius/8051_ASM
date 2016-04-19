@@ -76,7 +76,7 @@
 //SFR_BOOST
 
 //ASSEMBLER INTERFACE
-#define NOP time(1);cout<<"\nERROR\n"
+#define NOP time(1);cout << "\nERROR" << endl
 #define AJMP_ADDR11_(page) time(2);pc = (page<<8) | EEPROM[pc]
 #define ACALL_ADDR11_(page) time(2);set_stack();pc = (page<<8) | EEPROM[pc]
 #define LJMP_ADDR16 time(2);jmp_a(ADDR16) 

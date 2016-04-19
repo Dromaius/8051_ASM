@@ -357,32 +357,45 @@ void dump_array(uint8_t *array, uint32_t lenght) {
 	}
 }
 
+#define FILE_READ_BUFFER_SIZE 512
+
 void read_HEX(string filename) {
-	ifstream in_stream(filename);
+	ifstream in_stream(filename, ios::in|ios::binary|ios::ate);
 	uint16_t lenght,address;
 	uint8_t *target;
-	char buffer[512];
+	char buffer[FILE_READ_BUFFER_SIZE];
 	char *buffer_ptr = buffer;
 	in_stream.seekg(0, in_stream.end);
 	uint32_t size = in_stream.tellg();
 	in_stream.seekg(0, in_stream.beg);
-	while (true) {
-		if (size > 512) {
-			size -= 512;
+	while(true) {
+		if (size > FILE_READ_BUFFER_SIZE) {
+			size -= FILE_READ_BUFFER_SIZE;
 			buffer_ptr = buffer;
-			if (!in_stream.read(buffer_ptr, 512)) { return; };
+			if (!in_stream.read(buffer_ptr, FILE_READ_BUFFER_SIZE)) { return; };
 		}
 		else if (!size) {
 			in_stream.close();
 			return;
 		}
 		else{
-			buffer_ptr = &buffer[512 - size];
+			buffer_ptr = &buffer[FILE_READ_BUFFER_SIZE - size];
 			in_stream.read(buffer_ptr, size);
 			size = 0;
 		}
 		//while (*buffer_ptr != ':') {buffer_ptr++;}
-		for (uint8_t a = 0, b, c = 0, d = 0;buffer_ptr<&buffer[512];a++) {
+		for (uint8_t a = 0, b, c = 0, d = 0;buffer_ptr<&buffer[FILE_READ_BUFFER_SIZE];a++) {
+			
+			/*
+			//Alternative to switch
+			b = *(buffer_ptr++);
+			if(b >= '0' && b <= '9') b -= '0';
+			else if(b >= 'A' && b <= 'F') b -= 'A' - 10;
+			else if(b >= 'a' && b <= 'f') b -= 'a' - 10;
+			else if(b == ':') b = -2;
+			else b = -1;
+			*/
+			
 			switch (*(buffer_ptr++)) {
 			case '0':
 				b = 0;
@@ -479,43 +492,52 @@ void read_HEX(string filename) {
 			default:
 				b = -1;
 			}
-			if (b == -1) {}
+			if (b == -1) { /*nüscht*/}
 			else if (b == -2) {
 				d = 0;
 			}
 			else {
 				switch (d++) {
-				case 0:
-				case 1:
-					lenght |= b << (c == 0 * 4);
-					c = !c;
-					break;
-				case 2:
-				case 3:
-				case 4:
-				case 5:
-					address |= b << ((4 - (++c)) * 4);
-					break;
-				case 6:
-					--lenght *= 2;
-					target = &EEPROM[address - 1];
-					break;
-				case 7:
-					if (b == 1) {
-						in_stream.close();
-						return;
-					}
-					else { c = 0; }
-					break;
-				default:
-					*(target += !c) |= b << (c == 0 * 4);
-					c = !c;
-					lenght--;
-					d--;
+					case 0:
+					case 1:
+						lenght |= b << ((c == 0) * 4);
+						cout << "LENGHT <<: " << hex << lenght << endl;
+						c = !c;
+						break;
+					case 2:
+					case 3:
+					case 4:
+					case 5:
+						address |= b << ((4 - (++c)) * 4);
+						break;
+					case 6:
+						--lenght *= 2;
+						cout << "LENGHT *2: " << hex << lenght << endl;
+						target = &EEPROM[address - 1];
+						break;
+					case 7:
+						if (b == 1) {
+							in_stream.close();
+							return;
+						}
+						else { c = 0; }
+						break;
+					default:
+						*(target += !c) |= b << ((c == 0) * 4);
+						c = !c;
+						lenght--;
+						d--;
 				}
 			}
 		}
 	}
+}
+
+void read_HEX_T(string filename) //Garbaz
+{
+	ifstream in_stream(filename, ios::in|ios::binary|ios::ate);
+	
+	
 }
 
 void output() {
@@ -604,16 +626,25 @@ void init() {//Initialisierung des RAMs
 	SFR[stack_pointer] = 0x07;
 }
 
-int main(int argn, char* argv[]) {
+int main(int argc, char* argv[]) {
 	init();
-	init_beta_EEPROM();
-	//char a[256];
-	//cout << "Pfad eingeben:\n";
-	//cin >> a;
-	//read_HEX(a);
-	output();
-	//cout << "EEPROM:" << endl;
+	//init_beta_EEPROM();
+	
+	if(argc > 1)
+	{
+		read_HEX(argv[1]);
+	}
+	else
+	{
+		char a[256];
+		cout << "HEX File PATH: ";
+		cin >> a;
+		read_HEX(a);
+	}
+	cout << "EEPROM:" << endl;
 	//dump_array(EEPROM, EEPROM_SIZE);
+	cin.ignore();
+	//output();
 	cout << "Wait for enter\n";
 	cin.ignore();
 	long a = 0;
