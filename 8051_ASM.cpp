@@ -348,12 +348,25 @@ char _4BitHEX(uint8_t parse) {
 }
 
 void dump_array(uint8_t *array, uint32_t lenght) {
+	
+	uint8_t firstNullLine = 1;
 	for (uint16_t a = 0, b = 0;a<lenght / 16;a++, b = 0) {
-		cout << _4BitHEX((uint8_t)(a >> 8)) << _4BitHEX((uint8_t)(a >> 4)) << _4BitHEX((uint8_t)a) << "0h: ";
-		do {
-			cout << _4BitHEX(array[b | a << 4] >> 4) << _4BitHEX(array[b | a << 4]) << ' ';
-		} while ((++b & 0xF) != 0);
-		cout << endl;
+//		cout << (*((uint64_t *)&array[(a << 4)+8])) << endl;
+//		cout << (*((uint64_t *)&array[(a << 4)])) << endl;
+		if((*((uint64_t *)&array[a << 4])) | (*((uint64_t *)&array[(a << 4)+8])))
+		{
+			firstNullLine = 1;
+			cout << _4BitHEX((uint8_t)(a >> 8)) << _4BitHEX((uint8_t)(a >> 4)) << _4BitHEX((uint8_t)a) << "0h: ";
+			do {
+				cout << _4BitHEX(array[b | a << 4] >> 4) << _4BitHEX(array[b | a << 4]) << ' ';
+			} while ((++b & 0xF) != 0);
+			cout << endl;
+		}
+		else if(firstNullLine)
+		{
+			cout << "..." << endl;
+			firstNullLine = 0;
+		}
 	}
 }
 
@@ -365,7 +378,7 @@ void read_HEX(string filename) {
 	uint8_t *target;
 	char buffer[FILE_READ_BUFFER_SIZE];
 	char *buffer_ptr = buffer;
-	in_stream.seekg(0, in_stream.end);
+//	in_stream.seekg(0, in_stream.end);
 	uint32_t size = in_stream.tellg();
 	in_stream.seekg(0, in_stream.beg);
 	while(true) {
@@ -533,11 +546,76 @@ void read_HEX(string filename) {
 	}
 }
 
-void read_HEX_T(string filename) //Garbaz
+uint8_t hexCharToInt(char hex)
 {
-	ifstream in_stream(filename, ios::in|ios::binary|ios::ate);
+	if(hex >= '0' && hex <= '9') return hex - '0';
+	else if(hex >= 'A' && hex <= 'F') return hex - 'A' + 10;
+	else if(hex >= 'a' && hex <= 'f') return hex - 'a' + 10;
+	else return 255;
+}
+
+void read_HEX_G(string filename) //Garbaz
+{
+	ifstream in_stream(filename);
 	
-	
+	if(in_stream.is_open())
+	{
+		for(string buffer; getline(in_stream,buffer);)
+		{
+			if(buffer[buffer.length()-1] == '\r') buffer.pop_back();
+//			cerr << "FILE: Read line: \"" << buffer << "\"" << endl; //DEBUG
+			uint16_t d = 0;
+			uint8_t size = 0;
+			uint16_t addr = 0;
+			
+			for(uint16_t i = 0; i < buffer.length()-2; i++)
+			{
+				if(buffer[i] == ':')
+				{
+					d = 0;
+				}
+				else
+				{
+					switch(d)
+					{
+						case 0:
+							size = hexCharToInt(buffer[i]) << 4;
+							break;
+						case 1:
+							size |= hexCharToInt(buffer[i]);
+							break;
+						case 2:
+							addr = hexCharToInt(buffer[i]) << 12;
+							break;
+						case 3:
+						case 4:
+						case 5:
+							addr |= hexCharToInt(buffer[i]) << (20 - 4 * d);
+							break;
+						case 6:
+//							cerr << "FILE: Size = " << (int)size << endl; //DEBUG
+//							cerr << "FILE: Addr = " << hex << addr << endl; //DEBUG
+							break;
+						case 7:
+							if(buffer[i] == '1')
+							{
+								in_stream.close();
+//								cerr << "FILE: done." << endl; //DEBUG
+								return;
+							}
+							break;
+						default:
+							EEPROM[addr+d-8] = (hexCharToInt(buffer[i]) << 4) | (hexCharToInt(buffer[i+1]));
+					}
+					d++;
+				}
+			}
+		}
+	}
+	else
+	{
+		cerr << "Couldn't open HEX File..." << endl;
+	}
 }
 
 void output() {
@@ -632,7 +710,7 @@ int main(int argc, char* argv[]) {
 	
 	if(argc > 1)
 	{
-		read_HEX(argv[1]);
+		read_HEX_G(argv[1]);
 	}
 	else
 	{
@@ -642,9 +720,9 @@ int main(int argc, char* argv[]) {
 		read_HEX(a);
 	}
 	cout << "EEPROM:" << endl;
-	//dump_array(EEPROM, EEPROM_SIZE);
+	dump_array(EEPROM, EEPROM_SIZE);
 	cin.ignore();
-	//output();
+	output();
 	cout << "Wait for enter\n";
 	cin.ignore();
 	long a = 0;
