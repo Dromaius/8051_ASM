@@ -1,7 +1,7 @@
 /*
 A 8051 microcontroller emulator focused on speed and efficiency and NOT on code readability.
 
-Author:  https://github.com/layerde/
+Author:  https://github.com/Dromaius/
 Licence: MIT (See file "LICENCE")
 */
 
