@@ -190,15 +190,15 @@
 #define XCHD_A_atRi(a)  time(1);xchd_ab(akku,Ri(a))
 #define DJNZ_Rn_REL(a)  time(2);djnz_ab(Rn(a),REL())
 
-#define MOVX_A_atDPTR time(2);/*ohne externer speicher*/
-#define MOVX_A_atRi(a) time(2);/*ohne externer speicher*/
+#define MOVX_A_atDPTR time(2);/*w/o external memory*/
+#define MOVX_A_atRi(a) time(2);/*w/o external memory*/
 #define CLR_A time(1);clr_a(akku)
 #define MOV_A_DADR time(1);mov_b2a(akku,get_DADR(++))
 #define MOV_A_atRi(a) time(1);mov_b2a(akku,Ri(a))
 #define MOV_A_Rn(a) time(1);mov_b2a(akku,Rn(a))
 
-#define MOVX_atDPTR_A time(2);/*ohne externer speicher*/
-#define MOVX_atRi_A(a) time(2);/*ohne externer speicher*/
+#define MOVX_atDPTR_A time(2);/*w/o external memory*/
+#define MOVX_atRi_A(a) time(2);/*w/o external memory*/
 #define CPL_A time(1);cpl_a(akku)
 #define MOV_DADR_A time(1);set_DADR(++,akku)
 #define MOV_atRi_A(a) time(1);mov_b2a(Ri(a),akku)
