@@ -1,7 +1,11 @@
-// 8051_ASM.cpp : Definiert den Einstiegspunkt f�r die Konsolenanwendung.
-//
+/*
+A 8051 microcontroller emulator focused on speed and efficiency and NOT on code readability.
 
-//#include "stdafx.h" Windows standart sch***
+Author:  https://github.com/layerde/
+Licence: MIT (See file "LICENCE")
+*/
+
+//#include "stdafx.h" // Uncomment for Windows compilation
 #include "ADDRESS_8051.h"
 #include "ASM_8051.h"
 #include "Global_Vars.h"
@@ -18,6 +22,11 @@
 #define bit_not(X,n) X^=(0x01<<(n))
 #define bit_clr_8(X,n) X&=0xFF^(0x01<<(n))
 
+
+//DEBUG & MANUAL
+#define DEBUG 1
+#define MANUAL_STEP 1
+#define debug if(DEBUG)cout
 
 using namespace std;
 
@@ -370,8 +379,8 @@ void dump_array(uint8_t *array, uint32_t lenght) {
 	}
 }
 
-#define FILE_READ_BUFFER_SIZE 512
 
+/* //Old (malfunctioning) version of the file read function
 void read_HEX(string filename) {
 	ifstream in_stream(filename, ios::in|ios::binary|ios::ate);
 	uint16_t lenght,address;
@@ -399,15 +408,15 @@ void read_HEX(string filename) {
 		//while (*buffer_ptr != ':') {buffer_ptr++;}
 		for (uint8_t a = 0, b, c = 0, d = 0;buffer_ptr<&buffer[FILE_READ_BUFFER_SIZE];a++) {
 			
-			/*
+			
 			//Alternative to switch
-			b = *(buffer_ptr++);
-			if(b >= '0' && b <= '9') b -= '0';
-			else if(b >= 'A' && b <= 'F') b -= 'A' - 10;
-			else if(b >= 'a' && b <= 'f') b -= 'a' - 10;
-			else if(b == ':') b = -2;
-			else b = -1;
-			*/
+//			b = *(buffer_ptr++);
+//			if(b >= '0' && b <= '9') b -= '0';
+//			else if(b >= 'A' && b <= 'F') b -= 'A' - 10;
+//			else if(b >= 'a' && b <= 'f') b -= 'a' - 10;
+//			else if(b == ':') b = -2;
+//			else b = -1;
+			
 			
 			switch (*(buffer_ptr++)) {
 			case '0':
@@ -505,7 +514,7 @@ void read_HEX(string filename) {
 			default:
 				b = -1;
 			}
-			if (b == -1) { /*nüscht*/}
+			if (b == -1) {}
 			else if (b == -2) {
 				d = 0;
 			}
@@ -544,7 +553,7 @@ void read_HEX(string filename) {
 			}
 		}
 	}
-}
+}*/
 
 uint8_t hexCharToInt(char hex)
 {
@@ -554,7 +563,14 @@ uint8_t hexCharToInt(char hex)
 	else return 255;
 }
 
-void read_HEX_G(string filename) //Garbaz
+
+#define FILE_READ_BUFFER_SIZE 512
+
+/**
+Opens a file from a given path {filename} and writes the given OP codes into the EEPROM.
+The file has to be of the Intel HEX format.
+*/
+void read_HEX_G(string filename)
 {
 	ifstream in_stream(filename);
 	
@@ -639,6 +655,8 @@ void load_RAM(uint8_t address, uint8_t *data, uint16_t lenght) {
 		RAM[address] = *data;
 	}
 }
+
+
 void input() {
 	char *buffer;
 	cin >> buffer;
@@ -651,6 +669,10 @@ void input() {
 		break;
 	}
 }
+
+/**
+A test program:
+*/
 void init_beta_EEPROM() {
 	int a = 0, b;
 	int command = 0;
@@ -693,52 +715,99 @@ void init_beta_EEPROM() {
 	EEPROM[a++] = b;
 	EEPROM[a++] = 0x01;
 }
+
+
 uint8_t get_Port(uint8_t n) {
 	return RAM[PORT(n)] & extPort[n];
 }
+
 void set_Port(uint8_t n, uint8_t value) {
 	extPort[n] = value;
 }
 
-void init() {//Initialisierung des RAMs
+void init() {//Initialization of the RAM
 	SFR[stack_pointer] = 0x07;
 }
 
-int main(int argc, char* argv[]) {
+void exec(string filename)
+{
 	init();
-	//init_beta_EEPROM();
-	
+	read_HEX_G(filename);
+	debug << "EEPROM:" << endl;
+	if(DEBUG) dump_array(EEPROM,EEPROM_SIZE);
+	debug << endl;
+	uint64_t a = 0;
+	run = 0;
+	while (true)
+	{
+		interpreter();
+		if(MANUAL_STEP)
+		{
+			cout << "Press enter to proceed..." << endl;
+			cin.ignore();
+		}
+		cout << endl;
+		output();
+		bit_not(SFR[0x60 + 0x80],7);
+		cout << "Step: " << ++a << "\n" << endl;
+		cout << "------------------------" << endl;
+	}
+}
+
+int main(int argc, char* argv[]) {
 	if(argc > 1)
 	{
-		read_HEX_G(argv[1]);
+		exec(argv[1]);
 	}
 	else
 	{
-		char a[256];
+		char buffer[256];
+		cout << "Usage: " << argv[0] << " FILE" << endl;
+		cout << "Running in interactive mode..." << endl;
 		cout << "HEX File path: ";
-		cin >> a;
-		read_HEX(a);
+		cin >> buffer;
+		exec(buffer);
 	}
-	cout << "EEPROM:" << endl;
-	dump_array(EEPROM, EEPROM_SIZE);
-	cin.ignore();
-	output();
-	cout << "Wait for enter\n";
-	cin.ignore();
-	long a = 0;
-	run = false;
-	while (true) {
-		interpreter();
-		cin.ignore();
-		output();
-		bit_not(SFR[0x60 + 0x80],7);
-		cout << "Step: "<<++a<<"\n";
-	}
-	//output();
-	//bool stop = false;
-	//for (int i = 0;i < 10000;i++) { interpreter(stop); }
-	//cout << (int)get_Bit(0x94) << "\n";
-	//output();
-	cin.ignore();
+	
 	return 0;
 }
+
+//Old test main
+/*
+init();
+//init_beta_EEPROM();
+
+if(argc > 1)
+{
+	read_HEX_G(argv[1]);
+}
+else
+{
+	char a[256];
+	cout << "HEX File path: ";
+	cin >> a;
+	read_HEX_G(a);
+}
+cout << "EEPROM:" << endl;
+dump_array(EEPROM, EEPROM_SIZE);
+cin.ignore();
+output();
+cout << "Wait for enter\n";
+cin.ignore();
+long a = 0;
+run = false;
+while (true) {
+	interpreter();
+	cin.ignore();
+	output();
+	bit_not(SFR[0x60 + 0x80],7);
+	cout << "Step: "<<++a<<"\n";
+}
+//output();
+//bool stop = false;
+//for (int i = 0;i < 10000;i++) { interpreter(stop); }
+//cout << (int)get_Bit(0x94) << "\n";
+//output();
+cin.ignore();
+return 0;
+*/
