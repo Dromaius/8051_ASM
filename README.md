@@ -6,11 +6,11 @@
 - Open the project file in Visual Studio
 - Compile
 
-If it complains, comment in the line
+If it complains, **comment in** the line
 ```cpp
 #include "stdafx.h"
 ```
-and try again.
+in the file 8051\_ASM.cpp and try again.
 
 #####Linux:
 ```bash
