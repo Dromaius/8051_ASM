@@ -1,3 +1,8 @@
+#define bit_opperation(func,address) if (address & 0x80) {switch(address&0xF8){case PSW:func (psw, address & 0x07);refresh_Rn;break;default:func (SFR[address & 0xF8], address & 0x07);break;}}else{func (RAM[(address >> 3)+0x20], address & 0x07);}
+#define set_Bit(address) bit_opperation(bit_set, address)
+#define clr_Bit(address) bit_opperation(bit_clr_8, address)
+#define not_Bit(address) bit_opperation(bit_not, address)
+
 #define refresh_Rn R = &RAM[(psw & 0x18) >> 3]
 #define carry_get get_Bit(CARRY)
 #define carry_set if(carry){set_Bit(CARRY);}else{clr_Bit(CARRY);}
@@ -6,7 +11,10 @@
 #define register_set carry_set hcarry_set of_set
 #define bit_asm_command(a,b,opp) if (get_Bit(a) opp get_Bit(b)) {set_Bit(a);}else { clr_Bit(a);}
 #define set_RAM(address,value) if(address & 0x80) {switch(address){case PSW:psw=value;refresh_Rn;break;default:SFR[address] = value;}}else{RAM[address]=value;}
-//#define io_get(command) io_set(char a) {switch (a){case PSW:refresh_Rn;command;break;case PORT0:Port[0] = b;break;case PORT1:Port[1] = b;break;case PORT2:Port[2] = b;break;case PORT3:Port[3] = b;break;default:command;}}
+#define get_stack pc = RAM[stack - 1] | (RAM[stack] << 8);stack -= 2
+#define set_stack(a) *(uint16_t *)&RAM[stack]=pc a;stack+=2
+
+#define get_Bit_SFR(address) bit_address (SFR[address & 0xF8], address & 0x07)
 //PARAMETER_REGISTERBLOCKS
 #define ADDR11 EEPROM[pc]
 #define ADDR16 *((uint16_t *)(&EEPROM[pc]))
@@ -48,7 +56,7 @@
 #define clr_a(a) a=0
 #define push_a(a) RAM[++stack]=a
 #define swap_a(a) a=a<<4|a>>4;
-#define da_a(a) a&=0x0F
+#define da_a(a) if(a&0x0F>=0x0A){a-=0x0A;a+=0x10;} if(a&0xF0>0xA0){a-=0xA0;}
 //Bits
 #define mov_bit_b2a(a,b) if(get_Bit(b)){set_Bit(a);}else{clr_Bit(a);}
 #define orl_bit_b2a(a,b) bit_asm_command(a,b,||)
@@ -72,13 +80,12 @@
 #define jmp_a(a) pc=a
 #define cjne_abc(a,b,c) if(a==b){pc+=(int8_t)c-1;}else{pc+=2;}
 #define djnz_ab(a,b) if(--a){pc++;}else{pc+=(int8_t)b-1;}
-#define lcall_a(a) set_stack();pc=a-1
 //SFR_BOOST
 
 //ASSEMBLER INTERFACE
-#define NOP time(1);cout << "\nERROR" << endl
+#define NOP time(1)
 #define AJMP_ADDR11_(page) time(2);pc = (page<<8) | EEPROM[pc]
-#define ACALL_ADDR11_(page) time(2);set_stack();pc = (page<<8) | EEPROM[pc]
+#define ACALL_ADDR11_(page) time(2);set_stack(+1);pc = (page<<8) | EEPROM[pc]
 #define LJMP_ADDR16 time(2);jmp_a(ADDR16) 
 #define RR_A time(1);rr_a(akku)
 #define INC_A time(1);inc_a(akku)
@@ -87,7 +94,7 @@
 #define INC_Rn(a) time(1);inc_a(Rn(a))
 
 #define JBC_BADR_REL time(2);jbc_ab(BADR(),REL()) 
-#define LCALL_ADDR16 time(2);set_stack();jmp_a(ADDR16)
+#define LCALL_ADDR16 time(2);set_stack(+2);jmp_a(ADDR16)
 #define RRC_A time(1);rrc_a(akku)
 #define DEC_A time(1);dec_a(akku)
 #define DEC_DADR time(1); time(1);set_DADR(++,get_DADR()-1)
@@ -95,7 +102,7 @@
 #define DEC_Rn(a) time(1);dec_a(Rn(a))
 
 #define JB_BADR_REL time(2);jb_ab(BADR(),REL())
-#define RET time(2);get_stack()
+#define RET time(2);get_stack
 #define RL_A time(1);rl_a(akku)
 #define ADD_A_hC8 time(1);add_b2a(akku,hC8(++))
 #define ADD_A_DADR time(1);add_b2a(akku,get_DADR(++))
@@ -103,7 +110,7 @@
 #define ADD_A_Rn(a) time(1);add_b2a(akku,Rn(a))
 
 #define JNB_BADR_REL time(2);jnb_ab(BADR(),REL())
-#define RETI time(2);get_stack()
+#define RETI time(2);get_stack;clr_Bit(INT_FLAG)
 #define RLC_A time(1);rlc_a(akku)
 #define ADDC_A_hC8 time(1);addc_b2a(akku,hC8(++))
 #define ADDC_A_DADR time(1);addc_b2a(akku,get_DADR(++))

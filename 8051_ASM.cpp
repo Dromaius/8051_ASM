@@ -12,7 +12,6 @@ Licence: MIT (See file "LICENCE")
 
 #include <iostream>
 #include <fstream>
-#include <thread>
 
 //BLANK
 #define bit_opperation(func,address) if (address & 0x80) {func (SFR[address & 0xF8], address & 0x07);}else{func (RAM[(address >> 3)+0x20], address & 0x07);}
@@ -53,36 +52,38 @@ uint8_t &timer0_l = SFR[TIMER_0];
 uint8_t &timer0_h = SFR[TIMER_0 + 2];
 uint8_t &timer1_l = SFR[TIMER_1];
 uint8_t &timer1_h = SFR[TIMER_1 + 2];
-uint8_t &Port0 = SFR[PORT0];
-uint8_t &Port1 = SFR[PORT1];
-uint8_t &Port2 = SFR[PORT2];
-uint8_t &Port3 = SFR[PORT3];
 uint8_t interrupt_flags = 0;
 
 bool get_Bit(uint8_t address) {
-	bit_opperation(return bit_address, address);
-}
-void set_Bit(uint8_t address) {
-	bit_opperation(bit_set, address);
-}
-void clr_Bit(uint8_t address) {
-	bit_opperation(bit_clr_8, address);
-}
-void not_Bit(uint8_t address) {
-	bit_opperation(bit_not, address);
+	if (address & 0x80) {
+		switch (address&0xF8){
+		case PORT0:
+			return bit_address (SFR[PORT0] & extPort[0], address & 0x07);
+		case PORT1:
+			return bit_address (SFR[PORT1] & extPort[1], address & 0x07);
+		case PORT2:
+			return bit_address (SFR[PORT2] & extPort[2], address & 0x07);
+		case PORT3:
+			return bit_address (SFR[PORT3] & extPort[3], address & 0x07);
+		default:
+			return bit_address (SFR[address & 0xF8], address & 0x07);
+		}
+	}
+	else{return bit_address (RAM[(address >> 3)+0x20], address & 0x07);}
+	//bit_opperation(return bit_address, address);
 }
 
 uint8_t get_RAM(uint8_t address) {
 	if (address & 0x80) {
 		switch (address) {
 		case PORT0:
-			return Port0 & extPort[0];
+			return SFR[PORT0] & extPort[0];
 		case PORT1:
-			return Port1 & extPort[1];
+			return SFR[PORT1] & extPort[1];
 		case PORT2:
-			return Port2 & extPort[2];
+			return SFR[PORT2] & extPort[2];
 		case PORT3:
-			return Port3 & extPort[3];
+			return SFR[PORT3] & extPort[3];
 		default:
 			return SFR[address];
 		}
@@ -92,15 +93,6 @@ uint8_t get_RAM(uint8_t address) {
 	}
 }
 
-void get_stack() {
-	pc = RAM[stack - 1] | (RAM[stack] << 8);
-	stack -= 2;
-}
-void set_stack() {
-	RAM[++stack] = pc;
-	RAM[++stack] = pc >> 8;
-}
-
 void time(uint8_t wait) {
 	for (;wait > 0;wait--) {
 		if (tcon & 0x04) {
@@ -108,22 +100,22 @@ void time(uint8_t wait) {
 			case 0x01:
 				if (++timer0_l == 0) {
 					if (++timer0_h == 0) {
-						if (get_Bit(T0INT_FLAG)) { bit_set(interrupt_flags, 1); }
+						if (get_Bit_SFR(T0INT_FLAG)) { bit_set(interrupt_flags, 1); }
 					}
 				}
 				break;
 			case 0x02:
 				if (++timer0_l == 0) {
 					timer0_l = timer0_h;
-					if (get_Bit(T0INT_FLAG)) { bit_set(interrupt_flags, 1); }
+					if (get_Bit_SFR(T0INT_FLAG)) { bit_set(interrupt_flags, 1); }
 				}
 				break;
 			case 0x03:
 				if (++timer0_l == 0) {
-					if (get_Bit(T0INT_FLAG)) { bit_set(interrupt_flags, 1); }
+					if (get_Bit_SFR(T0INT_FLAG)) { bit_set(interrupt_flags, 1); }
 				}
 				if (++timer0_h == 0) {
-					if (get_Bit(T0INT_FLAG)) { bit_set(interrupt_flags, 1); }
+					if (get_Bit_SFR(T0INT_FLAG)) { bit_set(interrupt_flags, 1); }
 				}
 				break;
 			}
@@ -133,22 +125,22 @@ void time(uint8_t wait) {
 			case 0x10:
 				if (++timer1_l == 0) {
 					if (++timer1_h == 0) {
-						if (get_Bit(T1INT_FLAG)) { bit_set(interrupt_flags, 3); }
+						if (get_Bit_SFR(T1INT_FLAG)) { bit_set(interrupt_flags, 3); }
 					}
 				}
 				break;
 			case 0x20:
 				if (++timer1_l == 0) {
 					timer1_l = timer0_h;
-					if (get_Bit(T1INT_FLAG)) { bit_set(interrupt_flags, 3); }
+					if (get_Bit_SFR(T1INT_FLAG)) { bit_set(interrupt_flags, 3); }
 				}
 				break;
 			case 0x30:
 				if (++timer1_l == 0) {
-					if (get_Bit(T1INT_FLAG)) { bit_set(interrupt_flags, 3); }
+					if (get_Bit_SFR(T1INT_FLAG)) { bit_set(interrupt_flags, 3); }
 				}
 				if (++timer1_h == 0) {
-					if (get_Bit(T1INT_FLAG)) { bit_set(interrupt_flags, 3); }
+					if (get_Bit_SFR(T1INT_FLAG)) { bit_set(interrupt_flags, 3); }
 				}
 				break;
 			}
@@ -318,6 +310,7 @@ void interpreter() {
 		}
 	}while (run);
 }
+
 
 char _4BitHEX(uint8_t parse) {
 	switch (parse & 0x0F) {
@@ -718,15 +711,18 @@ void init_beta_EEPROM() {
 
 
 uint8_t get_Port(uint8_t n) {
-	return RAM[PORT(n)] & extPort[n];
+	return SFR[PORT(n)] & extPort[n];
 }
 
 void set_Port(uint8_t n, uint8_t value) {
 	extPort[n] = value;
 }
 
-void init() {//Initialization of the RAM
+void init() {//Initialization of the SFR
 	SFR[stack_pointer] = 0x07;
+	for (uint8_t a = 0;a<4;a++) {
+		SFR[PORT(a)] = 0xFF;
+	}
 }
 
 void exec(string filename)
