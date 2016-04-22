@@ -6,12 +6,14 @@ Licence: MIT (See file "LICENCE")
 */
 
 //#include "stdafx.h" // Uncomment for Windows compilation
-#include "ADDRESS_8051.h"
-#include "ASM_8051.h"
-#include "Global_Vars.h"
+#include "ADDRESS_8051.hpp"
+#include "ASM_8051.hpp"
+#include "Global_Vars.hpp"
 
 #include <iostream>
 #include <fstream>
+
+using namespace std;
 
 //BLANK
 #define bit_opperation(func,address) if (address & 0x80) {func (SFR[address & 0xF8], address & 0x07);}else{func (RAM[(address >> 3)+0x20], address & 0x07);}
@@ -26,8 +28,6 @@ Licence: MIT (See file "LICENCE")
 #define DEBUG 1
 #define MANUAL_STEP 1
 #define debug if(DEBUG)cout
-
-using namespace std;
 
 //EMULATOR ALU
 uint16_t temp = 0;
