@@ -6,12 +6,6 @@
 - Open the project file in Visual Studio
 - Compile
 
-If it complains, **comment in** the line
-```cpp
-#include "stdafx.h"
-```
-in the file 8051\_ASM.cpp and try again.
-
 #####Linux:
 ```bash
 git clone https://github.com/Dromaius/8051_ASM

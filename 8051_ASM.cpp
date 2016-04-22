@@ -5,7 +5,10 @@ Author:  https://github.com/Dromaius/
 Licence: MIT (See file "LICENCE")
 */
 
-//#include "stdafx.h" // Uncomment for Windows compilation
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+#include "stdafx.h" // Windows only
+#endif
+
 #include "ADDRESS_8051.hpp"
 #include "ASM_8051.hpp"
 #include "Global_Vars.hpp"
