@@ -19,7 +19,7 @@ Licence: MIT (See file "LICENCE")
 using namespace std;
 
 //BLANK
-#define bit_opperation(func,address) if (address & 0x80) {func (SFR[address & 0xF8], address & 0x07);}else{func (RAM[(address >> 3)+0x20], address & 0x07);}
+//#define bit_opperation(func,address) if (address & 0x80) {func (SFR[address & 0xF8], address & 0x07);}else{func (RAM[(address >> 3)+0x20], address & 0x07);}
 #define bit_address(X,n) ((X>>(n))&0x01)
 #define bit_set(X,n) X|=(0x01<<(n))
 #define bit_clr(X,n) X&=(X|(~X))^(0x01<<(n))
@@ -154,6 +154,7 @@ void time(uint8_t wait) {
 
 void interpreter() {
 	do {
+		debug<<hex<<(int)EEPROM[pc]<<endl;
 		switch (EEPROM[pc++]) {
 			ASM_COMMAND(0x00, NOP);
 			ASM_COMMAND(0x01, AJMP_ADDR11_(0));
@@ -376,182 +377,6 @@ void dump_array(uint8_t *array, uint32_t lenght) {
 	}
 }
 
-
-/* //Old (malfunctioning) version of the file read function
-void read_HEX(string filename) {
-	ifstream in_stream(filename, ios::in|ios::binary|ios::ate);
-	uint16_t lenght,address;
-	uint8_t *target;
-	char buffer[FILE_READ_BUFFER_SIZE];
-	char *buffer_ptr = buffer;
-//	in_stream.seekg(0, in_stream.end);
-	uint32_t size = in_stream.tellg();
-	in_stream.seekg(0, in_stream.beg);
-	while(true) {
-		if (size > FILE_READ_BUFFER_SIZE) {
-			size -= FILE_READ_BUFFER_SIZE;
-			buffer_ptr = buffer;
-			if (!in_stream.read(buffer_ptr, FILE_READ_BUFFER_SIZE)) { return; };
-		}
-		else if (!size) {
-			in_stream.close();
-			return;
-		}
-		else{
-			buffer_ptr = &buffer[FILE_READ_BUFFER_SIZE - size];
-			in_stream.read(buffer_ptr, size);
-			size = 0;
-		}
-		//while (*buffer_ptr != ':') {buffer_ptr++;}
-		for (uint8_t a = 0, b, c = 0, d = 0;buffer_ptr<&buffer[FILE_READ_BUFFER_SIZE];a++) {
-			
-			
-			//Alternative to switch
-//			b = *(buffer_ptr++);
-//			if(b >= '0' && b <= '9') b -= '0';
-//			else if(b >= 'A' && b <= 'F') b -= 'A' - 10;
-//			else if(b >= 'a' && b <= 'f') b -= 'a' - 10;
-//			else if(b == ':') b = -2;
-//			else b = -1;
-			
-			
-			switch (*(buffer_ptr++)) {
-			case '0':
-				b = 0;
-				break;
-
-			case '1':
-				b = 1;
-				break;
-
-			case '2':
-				b = 2;
-				break;
-
-			case '3':
-				b = 3;
-				break;
-
-			case '4':
-				b = 4;
-				break;
-
-			case '5':
-				b = 5;
-				break;
-
-			case '6':
-				b = 6;
-				break;
-
-			case '7':
-				b = 7;
-				break;
-
-			case '8':
-				b = 8;
-				break;
-
-			case '9':
-				b = 9;
-				break;
-
-			case 'A':
-				b = 0x0A;
-				break;
-
-			case 'B':
-				b = 0x0B;
-				break;
-
-			case 'C':
-				b = 0x0C;
-				break;
-
-			case 'D':
-				b = 0x0D;
-				break;
-
-			case 'E':
-				b = 0x0E;
-				break;
-
-			case 'F':
-				b = 0x0F;
-				break;
-
-			case 'a':
-				b = 0x0A;
-				break;
-
-			case 'b':
-				b = 0x0B;
-				break;
-
-			case 'c':
-				b = 0x0C;
-				break;
-
-			case 'd':
-				b = 0x0D;
-				break;
-
-			case 'e':
-				b = 0x0E;
-				break;
-
-			case 'f':
-				b = 0x0F;
-				break;
-
-			case ':':
-				b = -2;
-				break;
-
-			default:
-				b = -1;
-			}
-			if (b == -1) {}
-			else if (b == -2) {
-				d = 0;
-			}
-			else {
-				switch (d++) {
-					case 0:
-					case 1:
-						lenght |= b << ((c == 0) * 4);
-						cout << "LENGHT <<: " << hex << lenght << endl;
-						c = !c;
-						break;
-					case 2:
-					case 3:
-					case 4:
-					case 5:
-						address |= b << ((4 - (++c)) * 4);
-						break;
-					case 6:
-						--lenght *= 2;
-						cout << "LENGHT *2: " << hex << lenght << endl;
-						target = &EEPROM[address - 1];
-						break;
-					case 7:
-						if (b == 1) {
-							in_stream.close();
-							return;
-						}
-						else { c = 0; }
-						break;
-					default:
-						*(target += !c) |= b << ((c == 0) * 4);
-						c = !c;
-						lenght--;
-						d--;
-				}
-			}
-		}
-	}
-}*/
-
 uint8_t hexCharToInt(char hex)
 {
 	if(hex >= '0' && hex <= '9') return hex - '0';
@@ -738,19 +563,18 @@ void exec(string filename)
 	if(DEBUG) dump_array(EEPROM,EEPROM_SIZE);
 	debug << endl;
 	uint64_t a = 0;
-	run = 0;
+	run = !MANUAL_STEP;
 	while (true)
 	{
 		interpreter();
-		if(MANUAL_STEP)
+		if(!run)
 		{
 			cout << "Press enter to proceed..." << endl;
 			cin.ignore();
 		}
 		cout << endl;
 		output();
-		bit_not(SFR[0x60 + 0x80],7);
-		cout << "Step: " << ++a << "\n" << endl;
+		cout << "Step: " << dec << ++a << "\n" << endl;
 		cout << "------------------------" << endl;
 	}
 }

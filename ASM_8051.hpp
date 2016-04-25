@@ -11,13 +11,13 @@
 #define register_set carry_set hcarry_set of_set
 #define bit_asm_command(a,b,opp) if (get_Bit(a) opp get_Bit(b)) {set_Bit(a);}else { clr_Bit(a);}
 #define set_RAM(address,value) if(address & 0x80) {switch(address){case PSW:psw=value;refresh_Rn;break;default:SFR[address] = value;}}else{RAM[address]=value;}
-#define get_stack pc = RAM[stack - 1] | (RAM[stack] << 8);stack -= 2
+#define get_stack pc = RAM[stack - 1] <<8| (RAM[stack]);stack -= 2
 #define set_stack(a) *(uint16_t *)&RAM[stack]=pc a;stack+=2
 
 #define get_Bit_SFR(address) bit_address (SFR[address & 0xF8], address & 0x07)
 //PARAMETER_REGISTERBLOCKS
 #define ADDR11 EEPROM[pc]
-#define ADDR16 *((uint16_t *)(&EEPROM[pc]))
+//#define ADDR16 *((uint16_t *)(&EEPROM[pc]))
 #define REL(a) EEPROM[pc a]
 #define hC8(a) EEPROM[pc a]
 #define hC16 *((uint16_t *)(&EEPROM[pc]))
@@ -86,7 +86,7 @@
 #define NOP time(1)
 #define AJMP_ADDR11_(page) time(2);pc = (page<<8) | EEPROM[pc]
 #define ACALL_ADDR11_(page) time(2);set_stack(+1);pc = (page<<8) | EEPROM[pc]
-#define LJMP_ADDR16 time(2);jmp_a(ADDR16) 
+#define LJMP_ADDR16 time(2);pc=(EEPROM[pc]<<8)|(EEPROM[pc+1]);pc+=2
 #define RR_A time(1);rr_a(akku)
 #define INC_A time(1);inc_a(akku)
 #define INC_DADR time(1);set_DADR(++,get_DADR()+1)
@@ -94,7 +94,7 @@
 #define INC_Rn(a) time(1);inc_a(Rn(a))
 
 #define JBC_BADR_REL time(2);jbc_ab(BADR(),REL()) 
-#define LCALL_ADDR16 time(2);set_stack(+2);jmp_a(ADDR16)
+#define LCALL_ADDR16 time(2);set_stack(+2);pc=(EEPROM[pc]<<8)|(EEPROM[pc+1]);pc+=2
 #define RRC_A time(1);rrc_a(akku)
 #define DEC_A time(1);dec_a(akku)
 #define DEC_DADR time(1); time(1);set_DADR(++,get_DADR()-1)
