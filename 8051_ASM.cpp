@@ -353,7 +353,8 @@ char _4BitHEX(uint8_t parse) {
 }
 
 void dump_array(uint8_t *array, uint32_t lenght) {
-	
+	cout << "ADDR :  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 10" << endl;
+	cout << "------------------------------------------------------" << endl;
 	uint8_t firstNullLine = 1;
 	for (uint16_t a = 0, b = 0;a<lenght / 16;a++, b = 0) {
 //		cout << (*((uint64_t *)&array[(a << 4)+8])) << endl;
@@ -617,7 +618,8 @@ void read_HEX_G(string filename)
 							}
 							break;
 						default:
-							EEPROM[addr+d-8] = (hexCharToInt(buffer[i]) << 4) | (hexCharToInt(buffer[i+1]));
+							EEPROM[addr+d-8] = (hexCharToInt(buffer[i]) << 4) | hexCharToInt(buffer[i+1]);
+							i++;
 					}
 					d++;
 				}
