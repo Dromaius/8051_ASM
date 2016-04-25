@@ -353,7 +353,7 @@ char _4BitHEX(uint8_t parse) {
 }
 
 void dump_array(uint8_t *array, uint32_t lenght) {
-	cout << "ADDR :  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 10" << endl;
+	cout << "ADDR :  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F" << endl;
 	cout << "------------------------------------------------------" << endl;
 	uint8_t firstNullLine = 1;
 	for (uint16_t a = 0, b = 0;a<lenght / 16;a++, b = 0) {
