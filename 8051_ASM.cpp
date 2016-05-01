@@ -15,6 +15,7 @@ Licence: MIT (See file "LICENCE")
 
 #include <iostream>
 #include <fstream>
+#include <string>
 
 using namespace std;
 
@@ -44,7 +45,6 @@ uint8_t overflow() {
 }
 
 uint8_t *R = &RAM[(SFR[PSW] & 0x18) >> 3];
-uint16_t &dtptr = *((uint16_t *)(&SFR[DTPTR]));
 uint8_t &tmod = SFR[TMOD];
 uint8_t &tcon = SFR[TCON];
 uint8_t &stack = SFR[stack_pointer];
@@ -492,53 +492,6 @@ void input() {
 		break;
 	}
 }
-
-/**
-A test program:
-*/
-void init_beta_EEPROM() {
-	int a = 0, b;
-	int command = 0;
-	EEPROM[a++] = 0x02;//LJMP
-	EEPROM[a++] = 0x00;
-	EEPROM[a++] = 0x01;
-	EEPROM[0x03 + 1 * 0x08] = 0xA3;//INC DPTR
-	EEPROM[0x03 + 1 * 0x08 + 1] = 0xE4;//CLR A
-	EEPROM[0x03 + 1 * 0x08+2]=0x32;//RETI am Timer 0 interrupt
-	EEPROM[0x03 + 3 * 0x08] = 0x32;//RETI am Timer 1 interrupt
-	EEPROM[(a = 0x0100)++] = 0x74;//MOV A,#c
-	EEPROM[a++] = 0xFE;
-	EEPROM[a++] = 0x75;//MOV TIMER,#c
-	EEPROM[a++] = TIMER_0;
-	EEPROM[a++] = 0xE4;
-	EEPROM[a++] = 0x75;//MOV TIMER,#c
-	EEPROM[a++] = TIMER_0 + 2;
-	EEPROM[a++] = 0xFF;
-	EEPROM[a++] = 0x75;//MOV TCON,#c
-	EEPROM[a++] = TCON;
-	EEPROM[a++] = 0xFF;
-	EEPROM[a++] = 0x75;//MOV TMOD,#c
-	EEPROM[a++] = TMOD;
-	EEPROM[a++] = 0x31;
-	EEPROM[a++] = 0xD2;//MOV SETB,badr
-	EEPROM[a++] = EA_FLAG;
-	EEPROM[a++] = 0xD2;//MOV SETB,badr
-	EEPROM[a++] = T0INT_FLAG;
-	EEPROM[a++] = 0xD2;//MOV SETB,badr
-	EEPROM[a++] = T1INT_FLAG;
-	b = a;
-	for (int i = 0;i < 8;i++) {//A-12
-		EEPROM[a++] = 0xF8 + i;//MOV A,Rn
-	}
-	EEPROM[a++] = 2;//LJMP
-	EEPROM[a++] = 0x00;
-	EEPROM[a++] = 0xF0;
-	EEPROM[(a = 0xF000)++] = 0x14;//INC A
-	EEPROM[a++] = 2;//LJMP
-	EEPROM[a++] = b;
-	EEPROM[a++] = 0x01;
-}
-
 
 uint8_t get_Port(uint8_t n) {
 	return SFR[PORT(n)] & extPort[n];

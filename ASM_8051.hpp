@@ -12,7 +12,8 @@
 #define bit_asm_command(a,b,opp) if (get_Bit(a) opp get_Bit(b)) {set_Bit(a);}else { clr_Bit(a);}
 #define set_RAM(address,value) if(address & 0x80) {switch(address){case PSW:psw=value;refresh_Rn;break;default:SFR[address] = value;}}else{RAM[address]=value;}
 #define get_stack pc = RAM[stack - 1] <<8| (RAM[stack]);stack -= 2
-#define set_stack(a) *(uint16_t *)&RAM[stack]=pc a;stack+=2
+//#define set_stack(a) *(uint16_t *)&RAM[stack]=pc a;stack+=2
+#define set_stack(a) RAM[++stack] = (pc a)<<8;RAM[++stack] = pc a; 
 
 #define get_Bit_SFR(address) bit_address (SFR[address & 0xF8], address & 0x07)
 //PARAMETER_REGISTERBLOCKS
@@ -25,6 +26,8 @@
 #define BADR(a) EEPROM[pc a]
 #define Rn(a) R[a]
 #define Ri(a) atx(R[a])
+#define dtptr *((uint16_t *)(&SFR[DTPTR]))
+#define dptruC (uint16_t)(SFR[DTPTR]<<8|SFR[DTPTR+1])
 
 #define get_DADR(a) get_RAM(EEPROM[pc a])
 #define set_DADR(a,b) set_RAM(EEPROM[pc a],b)
@@ -54,7 +57,6 @@
 #define mul_ab(a,b) a*=b
 #define cpl_a(a) a=~a
 #define clr_a(a) a=0
-#define push_a(a) RAM[++stack]=a
 #define swap_a(a) a=a<<4|a>>4;
 #define da_a(a) if(a&0x0F>=0x0A){a-=0x0A;a+=0x10;} if(a&0xF0>0xA0){a-=0xA0;}
 //Bits
@@ -143,7 +145,7 @@
 
 #define JNZ_REL time(2);jnz_a(REL())
 #define ORL_C_BADR time(1);orl_bit_b2a(CARRY,BADR(++))
-#define JMP_atAplusDPTR time(2);jmp_a(atx(akku)+dtptr)
+#define JMP_atAplusDPTR time(2);jmp_a(atx(akku)+dptruC)
 #define MOV_A_hC8 time(1);mov_b2a(akku,hC8(++))
 #define MOV_DADR_hC8 time(2);set_DADR(,hC8(+1));pc+=2
 #define MOV_atRi_hC8(a) time(1);mov_b2a(Ri(a),hC8(++))
@@ -157,9 +159,9 @@
 #define MOV_DADR_atRi(a) time(1);set_DADR(++,Ri(a));
 #define MOV_DADR_Rn(a) time(1);set_DADR(++,Rn(a));
 
-#define MOV_DPTR_hC16 time(2); mov_b2a(dtptr,hC16);pc+=2
+#define MOV_DPTR_hC16 time(2); mov_b2a(dtptr,hC16);pc+=2//FIXed :)
 #define MOV_BADR_C time(1);mov_bit_b2a(BADR(+1),CARRY);pc++
-#define MOVC_A_atAlpusDPTR time(2);movc_b2a(akku,atx(akku)+dtptr)
+#define MOVC_A_atAlpusDPTR time(2);movc_b2a(akku,atx(akku)+dptruC)
 #define SUBB_A_hC8 time(1);subb_b2a(akku,hC8(++))
 #define SUBB_A_DADR time(1);subb_b2a(akku,get_DADR(++))
 #define SUBB_A_atRi(a) time(1);subb_b2a(akku,Ri(a))
@@ -167,7 +169,7 @@
 
 #define ORL_C_nBADR time(1);orl_notbit_b2a(CARRY,BADR(++))
 #define MOV_C_BADR time(1);mov_bit_b2a(CARRY,BADR(++))
-#define INC_DPTR time(2);inc_a(dtptr)
+#define INC_DPTR time(2);if(!(++SFR[DTPTR+1])){SFR[DTPTR]++;}
 #define MUL_AB time(4);mul_ab(akku,register_B)
 #define reserviert time(1);/*RESET*/
 #define MOV_atRi_DADR(a) time(1);mov_b2a(Ri(a),get_DADR(++))
@@ -181,7 +183,7 @@
 #define CJNE_atRi_hC8_REL(a)  time(2);cjne_abc(Ri(a),hC8(),REL(+1))
 #define CJNE_Rn_hC8_REL(a)  time(2);cjne_abc(Rn(a),hC8(),REL(+1))
 
-#define PUSH_DADR time(2); push_a(get_DADR(++))
+#define PUSH_DADR time(2); RAM[++stack]=get_DADR(++)
 #define CLR_BADR time(1); clr_bit_a(BADR(++))
 #define CLR_C time(1);clr_bit_a(CARRY)
 #define SWAP_A time(1);swap_a(akku)
