@@ -1,6 +1,6 @@
 default:
-	g++ -O3 -std=c++11 -o 8051_ASM 8051_ASM.cpp
+	gcc -shared -fPIC -O3 -std=c99 -o 8051_ASM.so 8051_ASM.c
 release:
-	g++ -O3 -std=c++11 -o 8051_ASM 8051_ASM.cpp
+	gcc -shared -fPIC -O3 -std=c99 -o 8051_ASM.so 8051_ASM.c
 debug:
-	g++ -std=c++11 -o 8051_ASM 8051_ASM.cpp
+	gcc -shared -fPIC -std=c99 -o 8051_ASM.so 8051_ASM.c

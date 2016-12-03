@@ -1,3 +1,7 @@
+#define RAM_SIZE 256
+#define SFR_SIZE 128
+#define EEPROM_SIZE (1<<16)
+
 //Bit
 #define CARRY 0xD7
 #define OF 0xD2

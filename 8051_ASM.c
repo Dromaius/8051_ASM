@@ -8,10 +8,6 @@
 #define bit_not(X,n) X^=(0x01<<(n))
 #define bit_clr_8(X,n) X&=0xFF^(0x01<<(n))
 
-#define RAM_SIZE 256
-#define SFR_SIZE 128
-#define EEPROM_SIZE (1<<16)
-
 #ifdef __WIN32
 #define API_HIDE 
 #define API_SHOW __attribute__ ((dllexport))
@@ -24,12 +20,8 @@
 API_HIDE uint16_t temp = 0;
 #define temp2 *(uint8_t *)(&temp)
 #define carry ((uint8_t *)(&temp))[1]
-API_HIDE uint8_t hcarry() {
-	return (temp & 0x10);
-}
-API_HIDE uint8_t overflow() {
-	return (temp & 0x80);
-}
+#define hcarry (temp & 0x10)
+#define overflow (temp & 0x80)
 
 API_HIDE uint8_t *R = &RAM[(SFR[PSW] & 0x18) >> 3];
 #define tmod SFR[TMOD]
@@ -140,15 +132,15 @@ API_SHOW void load_RAM(uint8_t address, uint8_t *data, uint16_t lenght)
 }
 
 API_SHOW void init() {//Initialization of the SFR
+	stop_interpreter();
+	#define ASM_COMMAND(opcode,command) pointers[opcode]=func_ #opcode ;
+	#include "ASM_list.h"
+	#undef ASM_COMMAND(opcode,command)
 	SFR[stack_pointer] = 0x07;
-	for (uint8_t a = 0;a<4;a++) {
+	temp=3;
+	while(temp--){
 		SFR[PORT(a)] = 0xFF;
 	}
-	{
-#define ASM_COMMAND(opcode,command) pointers[opcode]=func_ #opcode ;
-#include "ASM_list.h"
-#undef ASM_COMMAND(opcode,command)
-}
 }
 
 API_SHOW uint8_t get_Port(uint8_t n) 
