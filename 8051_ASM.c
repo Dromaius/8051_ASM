@@ -12,8 +12,13 @@
 #define SFR_SIZE 128
 #define EEPROM_SIZE (1<<16)
 
-#define API_HIDE
-#define API_SHOW
+#ifdef __WIN32
+#define API_HIDE 
+#define API_SHOW __attribute__ ((dllexport))
+#else
+#define API_HIDE __attribute__ ((visibility ("hidden")))
+#define API_SHOW __attribute__ ((visibility ("default")))
+#endif
 
 //EMULATOR ALU
 API_HIDE uint16_t temp = 0;
@@ -44,7 +49,7 @@ API_HIDE uint8_t extPort[4] = { 0x00,0x00,0x00,0x00 };
 API_HIDE uint8_t RAM[RAM_SIZE+SFR_SIZE];
 API_HIDE uint8_t *SFR=&RAM[SFR_SIZE];
 API_HIDE uint16_t pc = 0x0000;
-API_SHOW bool run;
+API_HIDE bool run;
 
 #define ASM_COMMAND(opcode,command) API_HIDE void func_ #opcode {command; }
 #include "ASM_list.h"
@@ -52,7 +57,8 @@ API_SHOW bool run;
 
 
 API_HIDE const void ((*pointers)())[256];
-void time(uint8_t wait) {
+API_HIDE void time(uint8_t wait) 
+{
 	for (;wait > 0;wait--) {
 		if (tcon & 0x04) {
 			switch (tmod & 0x07) {
@@ -106,7 +112,8 @@ void time(uint8_t wait) {
 		}
 	}
 }
-API_HIDE char Int2Char(uint8_t parse) {
+API_HIDE char Int2Char(uint8_t parse) 
+{
     if(0 <=parse <= 9) return parse + '0';
 	else if(0x0A <= parse <= 0x0F) return parse + 'A' - 10;
 	else return 0;
@@ -119,12 +126,14 @@ API_HIDE uint8_t Char2Int(char hex)
 	else return 255;
 }
 
-API_SHOW void load_EEPROM(uint16_t address, uint8_t *data, uint32_t lenght) {
+API_SHOW void load_EEPROM(uint16_t address, uint8_t *data, uint32_t lenght) 
+{
 	for (lenght += address;address<lenght;address++, data++) {
 		EEPROM[address] = *data;
 	}
 }
-API_SHOW void load_RAM(uint8_t address, uint8_t *data, uint16_t lenght) {
+API_SHOW void load_RAM(uint8_t address, uint8_t *data, uint16_t lenght) 
+{
 	for (lenght += address;address<lenght;address++, data++) {
 		RAM[address] = *data;
 	}
@@ -142,17 +151,21 @@ API_SHOW void init() {//Initialization of the SFR
 }
 }
 
-API_SHOW uint8_t get_Port(uint8_t n) {
+API_SHOW uint8_t get_Port(uint8_t n) 
+{
 	return SFR[PORT(n)] & extPort[n];
 }
 
-API_SHOW void set_Port(uint8_t n, uint8_t value) {
+API_SHOW void set_Port(uint8_t n, uint8_t value) 
+{
 	extPort[n] = value;
 }
 
-API_SHOW void interpret(int steps){
-
-	if (interrupt_flags) {
+API_SHOW void interpret_stepping(int steps)
+{
+	while(steps--){
+		pointers[pc++]();
+		if (interrupt_flags) {
 			if (get_Bit(EA_FLAG)) {
 				for (uint8_t a = 0;a < 5;a++) {
 					if (bit_address(interrupt_flags, a)) {
@@ -164,4 +177,26 @@ API_SHOW void interpret(int steps){
 			}
 			interrupt_flags = 0;
 		}
+	}
+}
+API_SHOW void run_interpreter(){
+	run=true;
+	while(run){
+		pointers[pc++]();
+		if (interrupt_flags) {
+			if (get_Bit(EA_FLAG)) {
+				for (uint8_t a = 0;a < 5;a++) {
+					if (bit_address(interrupt_flags, a)) {
+						set_stack();
+						pc = 0x03 + a * 0x08;
+						set_Bit(INT_FLAG);
+					}
+				}
+			}
+			interrupt_flags = 0;
+		}
+	}
+}
+API_SHOW void stop_interpreter(){
+	run=false;
 }
