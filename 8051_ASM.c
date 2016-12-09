@@ -6,7 +6,7 @@
 
 #include "8051_ASM.h"
 #include "8051_ADRESSES.h"
-#include "OPCODE_2_C-COMMAND.h"
+#include "8051_OPCODE_2_C-COMMAND.h"
 
 
 #define bit_address(X,n) ((X>>(n))&0x01)
@@ -113,7 +113,7 @@ API_HIDE void time(uint8_t wait)
 
 #define ASM_COMMAND(opcode,command) API_HIDE void func_##opcode(){command; }
 #define seperator
-#include "ASM_list.h"
+#include "8051_ASM_list.h"
 #undef seperator
 #undef ASM_COMMAND
 
@@ -122,7 +122,7 @@ API_HIDE void time(uint8_t wait)
 API_HIDE_var const void (const (*pointers)())[256]={
 #define ASM_COMMAND(opcode,command) func_##opcode
 #define seperator ,
-#include "ASM_list.h"
+#include "8051_ASM_list.h"
 #undef seperator
 #undef ASM_COMMAND
 }
