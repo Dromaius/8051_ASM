@@ -5,28 +5,17 @@
 #include <string.h>
 
 #include "8051_ASM.h"
+#include "API_header.h"
 #include "8051_ADRESSES.h"
 #include "8051_OPCODE_2_C-COMMAND.h"
 
+typedef void (*exec_func)();
 
 #define bit_address(X,n) ((X>>(n))&0x01)
 #define bit_set(X,n) X|=(0x01<<(n))
 #define bit_clr(X,n) X&=(X|(~X))^(0x01<<(n))
 #define bit_not(X,n) X^=(0x01<<(n))
 #define bit_clr_8(X,n) X&=0xFF^(0x01<<(n))
-
-#ifdef __WIN32
-#define API_HIDE 
-#define API_SHOW __attribute__ ((dllexport))
-#define API_HIDE_var 
-#define API_SHOW_var __attribute__ ((dllexport))
-#else
-#define API_HIDE __attribute__ ((visibility ("hidden")))
-#define API_SHOW __attribute__ ((visibility ("default")))
-
-#define API_HIDE_var
-#define API_SHOW_var
-#endif
 
 API_HIDE_var uint8_t EEPROM[EEPROM_SIZE];
 API_HIDE_var uint8_t extPort[4] = { 0x00,0x00,0x00,0x00 };
@@ -42,7 +31,7 @@ API_HIDE_var uint16_t temp = 0;
 #define hcarry (temp & 0x10)
 #define overflow (temp & 0x80)
 
-API_HIDE_var uint8_t *R = &RAM[(SFR[PSW] & 0x18) >> 3];
+API_HIDE_var uint8_t *R = &RAM[0];
 #define tmod SFR[TMOD]
 #define tcon SFR[TCON]
 #define stack SFR[stack_pointer]
@@ -119,7 +108,7 @@ API_HIDE void time(uint8_t wait)
 
 
 
-API_HIDE_var const void (const (*pointers)())[256]={
+API_HIDE_var const exec_func pointers[256]={
 #define ASM_COMMAND(opcode,command) func_##opcode
 #define seperator ,
 #include "8051_ASM_list.h"
@@ -223,7 +212,7 @@ API_SHOW uint8_t* dump_RAM(uint8_t address, uint8_t lenght,bool sfr){
 			memcpy(ptr,&SFR[address],lenght);
 		else{
 			memcpy(ptr,&RAM[address],RAM_SIZE-address);
-			memcpy(ptr+RAM_SIZE-address,&SFR[RAM_SIZE-SFR_SIZE],length+address-RAM_SIZE);
+			memcpy(ptr+RAM_SIZE-address,&SFR[RAM_SIZE-SFR_SIZE],lenght+address-RAM_SIZE);
 		}
 	}
 	else memcpy(ptr,&RAM[address],lenght);
