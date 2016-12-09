@@ -1,14 +1,4 @@
-#include <cstdint>
-
-#define RAM_SIZE 256
-#define SFR_SIZE 128
-#define EEPROM_SIZE (1<<16)
-
-uint8_t EEPROM[EEPROM_SIZE];
-
-//�C
-uint8_t extPort[4] = { 0x00,0x00,0x00,0x00 };
-uint8_t RAM[RAM_SIZE+SFR_SIZE];
-uint8_t *SFR=&RAM[SFR_SIZE];
-uint16_t pc = 0x0000;
-bool run;
+#define uint8_t unsigned char
+#define uint16_t unsigned short
+#define uint32_t unsigned int
+#define uint64_t unsigned long

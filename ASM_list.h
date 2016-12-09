@@ -1,9 +1,16 @@
 /*usage:
 #define ASM_COMMAND(opcode,command) case opcode:command break
 */
+/*switch macros
 #define ASM_Rn(opcode_4,command) ASM_COMMAND(opcode_4|0x08,command(0)) ASM_COMMAND(opcode_4|0x09,command(1)) ASM_COMMAND(opcode_4|0x0A,command(2)) ASM_COMMAND(opcode_4|0x0B,command(3)) ASM_COMMAND(opcode_4|0x0C,command(4)) ASM_COMMAND(opcode_4|0x0D,command(5)) ASM_COMMAND(opcode_4|0x0E,command(6)) ASM_COMMAND(opcode_4|0x0F,command(7))
 #define ASM_Ri(opcode_4,command) ASM_COMMAND(opcode_4|0x06,command(0)) ASM_COMMAND(opcode_4|0x07,command(1))
 #define ASM_Ri_Custom(opcode_7,command) ASM_COMMAND(opcode_7|0x00,command(0)) ASM_COMMAND(opcode_7|0x01,command(1))
+*/
+/*pointer macros*/
+#define ASM_Rn(opcode_4,command) ASM_COMMAND(##opcode_4 _0x08,command(0)) ASM_COMMAND(##opcode_4 _0x09,command(1)) ASM_COMMAND(##opcode_4 _0x0A,command(2)) ASM_COMMAND(##opcode_4 _0x0B,command(3)) ASM_COMMAND(##opcode_4 _0x0C,command(4)) ASM_COMMAND(##opcode_4 _0x0D,command(5)) ASM_COMMAND(##opcode_4 _0x0E,command(6)) ASM_COMMAND(##opcode_4 _0x0F,command(7))
+#define ASM_Ri(opcode_4,command) ASM_COMMAND(##opcode_4 _0x06,command(0)) ASM_COMMAND(##opcode_4 _0x07,command(1))
+#define ASM_Ri_Custom(opcode_7,command) ASM_COMMAND(##opcode_7 _0x00,command(0)) ASM_COMMAND(##opcode_7 _0x01,command(1))
+
 ASM_COMMAND(0x00, NOP)
 ASM_COMMAND(0x00, NOP)
 ASM_COMMAND(0x01, AJMP_ADDR11_(0))
@@ -22,6 +29,7 @@ ASM_COMMAND(0x14, DEC_A)
 ASM_COMMAND(0x15, DEC_DADR)
 ASM_Ri(0x10, DEC_atRi)
 ASM_Rn(0x10, DEC_Rn)
+
 ASM_COMMAND(0x20, JB_BADR_REL) 
 ASM_COMMAND(0x21, AJMP_ADDR11_(1)) 
 ASM_COMMAND(0x22, RET) 
