@@ -153,6 +153,6 @@ ASM_COMMAND(0xF5, MOV_DADR_A) seperator
 ASM_Ri(0xF0, MOV_atRi_A) seperator 
 ASM_Rn(0xF0, MOV_Rn_A) 
 
-#undef ASM_Rn(opcode_4,command)
-#undef ASM_Ri(opcode_4,command)
-#undef ASM_Ri_Custom(opcode_7,command)
+#undef ASM_Rn
+#undef ASM_Ri
+#undef ASM_Ri_Custom

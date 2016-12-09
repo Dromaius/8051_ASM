@@ -54,7 +54,7 @@ API_HIDE uint8_t interrupt_flags = 0;
 #define seperator
 #include "ASM_list.h"
 #undef seperator
-#undef ASM_COMMAND(opcode,command)
+#undef ASM_COMMAND
 
 
 
@@ -63,7 +63,7 @@ API_HIDE const void (const (*pointers)())[256]={
 #define seperator ,
 #include "ASM_list.h"
 #undef seperator
-#undef ASM_COMMAND(opcode,command)
+#undef ASM_COMMAND
 }
 
 API_HIDE void time(uint8_t wait) 
