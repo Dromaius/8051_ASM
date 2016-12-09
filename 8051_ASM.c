@@ -56,7 +56,7 @@ API_HIDE_var uint8_t *R = &RAM[(SFR[PSW] & 0x18) >> 3];
 API_HIDE_var uint8_t interrupt_flags = 0;
 
 
-#define ASM_COMMAND(opcode,command) API_HIDE void func_##opcode {command; }
+#define ASM_COMMAND(opcode,command) API_HIDE void func_##opcode(){command; }
 #define seperator
 #include "ASM_list.h"
 #undef seperator
@@ -141,13 +141,13 @@ API_HIDE uint8_t Char2Int(char hex)
 	else return 255;
 }
 
-API_SHOW void set_EEPROM(uint16_t address, uint8_t *data, uint32_t lenght) 
+API_SHOW void write_EEPROM(uint16_t address, uint8_t *data, uint32_t lenght) 
 {
 	for (lenght += address;address<lenght;address++, data++) {
 		EEPROM[address] = *data;
 	}
 }
-API_SHOW void set_RAM(uint8_t address, uint8_t *data, uint16_t lenght) 
+API_SHOW void write_RAM(uint8_t address, uint8_t *data, uint16_t lenght) 
 {
 	for (lenght += address;address<lenght;address++, data++) {
 		RAM[address] = *data;
@@ -216,7 +216,7 @@ API_SHOW void run_interpreter()
 }
 
 
-API_SHOW uint8_t* get_RAM(uint8_t address, uint8_t lenght,bool sfr){
+API_SHOW uint8_t* dump_RAM(uint8_t address, uint8_t lenght,bool sfr){
 	uint8_t* ptr=malloc(lenght);
 	if(sfr){
 		if(address>RAM_SIZE-SFR_SIZE)
@@ -230,7 +230,7 @@ API_SHOW uint8_t* get_RAM(uint8_t address, uint8_t lenght,bool sfr){
 	return ptr;
 }
 
-API_SHOW uint8_t* get_EEPROM(uint16_t address, uint16_t lenght){
+API_SHOW uint8_t* dump_EEPROM(uint16_t address, uint16_t lenght){
 	uint8_t* ptr=malloc(lenght);
 	memcpy(ptr,&EEPROM[address],lenght%(EEPROM_SIZE-address));
 }

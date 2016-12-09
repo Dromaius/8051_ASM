@@ -7,9 +7,9 @@
 #define ASM_Ri_Custom(opcode_7,command) ASM_COMMAND(opcode_7|0x00,command(0)) ASM_COMMAND(opcode_7|0x01,command(1))
 */
 /*pointer macros*/
-#define ASM_Rn(opcode_4,command) ASM_COMMAND(##opcode_4 _0x08,command(0)) seperator ASM_COMMAND(##opcode_4 _0x09,command(1)) seperator ASM_COMMAND(##opcode_4 _0x0A,command(2)) seperator ASM_COMMAND(##opcode_4 _0x0B,command(3)) seperator ASM_COMMAND(##opcode_4 _0x0C,command(4)) seperator ASM_COMMAND(##opcode_4 _0x0D,command(5)) seperator ASM_COMMAND(##opcode_4 _0x0E,command(6)) seperator ASM_COMMAND(##opcode_4 _0x0F,command(7))
-#define ASM_Ri(opcode_4,command) ASM_COMMAND(##opcode_4 _0x06,command(0)) seperator ASM_COMMAND(##opcode_4 _0x07,command(1))
-#define ASM_Ri_Custom(opcode_7,command) ASM_COMMAND(##opcode_7 _0x00,command(0)) seperator ASM_COMMAND(##opcode_7 _0x01,command(1))
+#define ASM_Rn(opcode_4,command) ASM_COMMAND(opcode_4 ## _0x08,command(0)) seperator ASM_COMMAND(opcode_4 ## _0x09,command(1)) seperator ASM_COMMAND(opcode_4 ## _0x0A,command(2)) seperator ASM_COMMAND(opcode_4 ## _0x0B,command(3)) seperator ASM_COMMAND(opcode_4 ## _0x0C,command(4)) seperator ASM_COMMAND(opcode_4 ## _0x0D,command(5)) seperator ASM_COMMAND(opcode_4 ## _0x0E,command(6)) seperator ASM_COMMAND(opcode_4 ## _0x0F,command(7))
+#define ASM_Ri(opcode_4,command) ASM_COMMAND(opcode_4 ## _0x06,command(0)) seperator ASM_COMMAND(opcode_4 ## _0x07,command(1))
+#define ASM_Ri_Custom(opcode_7,command) ASM_COMMAND(opcode_7 ## _0x00,command(0)) seperator ASM_COMMAND(opcode_7 ## _0x01,command(1))
 
 ASM_COMMAND(0x00, NOP) seperator
 ASM_COMMAND(0x01, AJMP_ADDR11_(0)) seperator
