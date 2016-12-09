@@ -1,6 +1,12 @@
+#include "8051_ASM.h"
 #include "8051_ADRESSES.h"
 #include "OPCODE_2_C-COMMAND.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
 
 #define bit_address(X,n) ((X>>(n))&0x01)
 #define bit_set(X,n) X|=(0x01<<(n))
