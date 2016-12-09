@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "8051_ASM.h"
 #include "8051_ADRESSES.h"
 #include "OPCODE_2_C-COMMAND.h"
 
