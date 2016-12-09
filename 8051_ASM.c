@@ -1,12 +1,11 @@
-#include "8051_ASM.h"
+/*includes*/
+#include <stdint.h>
+#include <stdlib.h>
+
+
 #include "8051_ADRESSES.h"
 #include "OPCODE_2_C-COMMAND.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
 
 #define bit_address(X,n) ((X>>(n))&0x01)
 #define bit_set(X,n) X|=(0x01<<(n))
@@ -17,26 +16,31 @@
 #ifdef __WIN32
 #define API_HIDE 
 #define API_SHOW __attribute__ ((dllexport))
+#define API_HIDE_var 
+#define API_SHOW_var __attribute__ ((dllexport))
 #else
 #define API_HIDE __attribute__ ((visibility ("hidden")))
 #define API_SHOW __attribute__ ((visibility ("default")))
+
+#define API_HIDE_var
+#define API_SHOW_var
 #endif
 
-API_HIDE uint8_t EEPROM[EEPROM_SIZE];
-API_HIDE uint8_t extPort[4] = { 0x00,0x00,0x00,0x00 };
-API_HIDE uint8_t RAM[RAM_SIZE+SFR_SIZE];
-API_HIDE uint8_t *SFR=&RAM[SFR_SIZE];
-API_HIDE uint16_t pc = 0x0000;
-API_HIDE bool run;
+API_HIDE_var uint8_t EEPROM[EEPROM_SIZE];
+API_HIDE_var uint8_t extPort[4] = { 0x00,0x00,0x00,0x00 };
+API_HIDE_var uint8_t RAM[RAM_SIZE+SFR_SIZE];
+API_HIDE_var uint8_t *SFR=&RAM[SFR_SIZE];
+API_HIDE_var uint16_t pc = 0x0000;
+API_HIDE_var bool run;
 
-//EMULATOR ALU
-API_HIDE uint16_t temp = 0;
+/*EMULATOR ALU*/
+API_HIDE_var uint16_t temp = 0;
 #define temp2 *(uint8_t *)(&temp)
 #define carry ((uint8_t *)(&temp))[1]
 #define hcarry (temp & 0x10)
 #define overflow (temp & 0x80)
 
-API_HIDE uint8_t *R = &RAM[(SFR[PSW] & 0x18) >> 3];
+API_HIDE_var uint8_t *R = &RAM[(SFR[PSW] & 0x18) >> 3];
 #define tmod SFR[TMOD]
 #define tcon SFR[TCON]
 #define stack SFR[stack_pointer]
@@ -47,7 +51,7 @@ API_HIDE uint8_t *R = &RAM[(SFR[PSW] & 0x18) >> 3];
 #define timer0_h SFR[TIMER_0 + 2]
 #define timer1_l SFR[TIMER_1]
 #define timer1_h SFR[TIMER_1 + 2]
-API_HIDE uint8_t interrupt_flags = 0;
+API_HIDE_var uint8_t interrupt_flags = 0;
 
 
 #define ASM_COMMAND(opcode,command) API_HIDE void func_##opcode {command; }
@@ -58,7 +62,7 @@ API_HIDE uint8_t interrupt_flags = 0;
 
 
 
-API_HIDE const void (const (*pointers)())[256]={
+API_HIDE_var const void (const (*pointers)())[256]={
 #define ASM_COMMAND(opcode,command) func_##opcode
 #define seperator ,
 #include "ASM_list.h"
@@ -147,8 +151,12 @@ API_SHOW void set_RAM(uint8_t address, uint8_t *data, uint16_t lenght)
 		RAM[address] = *data;
 	}
 }
+API_SHOW void stop_interpreter()
+{
+	run=false;
+}
 
-API_SHOW void reset() {//Initialization of the SFR
+API_SHOW void reset() {/*Initialization of the SFR*/
 	stop_interpreter();
 	SFR[stack_pointer] = 0x07;
 	temp=3;
@@ -204,10 +212,7 @@ API_SHOW void run_interpreter()
 		}
 	}
 }
-API_SHOW void stop_interpreter()
-{
-	run=false;
-}
+
 
 API_SHOW uint8_t* get_RAM(uint8_t address, uint8_t lenght,bool sfr){
 	uint8_t* ptr=malloc(lenght);
