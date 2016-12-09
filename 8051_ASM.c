@@ -60,11 +60,6 @@ API_HIDE const void (const (*pointers)())[256]={
 #undef ASM_COMMAND(opcode,command)
 }
 
-#undef NAME_Rn(opcode_4)
-#undef NAME_Ri(opcode_4)
-#undef NAME_Ri_Custom(opcode_7)
-#undef NAME_COMMAND(opcode)
-
 API_HIDE void time(uint8_t wait) 
 {
 	for (;wait > 0;wait--) {
