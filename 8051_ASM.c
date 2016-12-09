@@ -55,23 +55,6 @@ API_HIDE_var uint8_t *R = &RAM[(SFR[PSW] & 0x18) >> 3];
 #define timer1_h SFR[TIMER_1 + 2]
 API_HIDE_var uint8_t interrupt_flags = 0;
 
-
-#define ASM_COMMAND(opcode,command) API_HIDE void func_##opcode(){command; }
-#define seperator
-#include "ASM_list.h"
-#undef seperator
-#undef ASM_COMMAND
-
-
-
-API_HIDE_var const void (const (*pointers)())[256]={
-#define ASM_COMMAND(opcode,command) func_##opcode
-#define seperator ,
-#include "ASM_list.h"
-#undef seperator
-#undef ASM_COMMAND
-}
-
 API_HIDE void time(uint8_t wait) 
 {
 	for (;wait > 0;wait--) {
@@ -127,6 +110,23 @@ API_HIDE void time(uint8_t wait)
 		}
 	}
 }
+
+#define ASM_COMMAND(opcode,command) API_HIDE void func_##opcode(){command; }
+#define seperator
+#include "ASM_list.h"
+#undef seperator
+#undef ASM_COMMAND
+
+
+
+API_HIDE_var const void (const (*pointers)())[256]={
+#define ASM_COMMAND(opcode,command) func_##opcode
+#define seperator ,
+#include "ASM_list.h"
+#undef seperator
+#undef ASM_COMMAND
+}
+
 API_HIDE char Int2Char(uint8_t parse) 
 {
     if(0 <=parse <= 9) return parse + '0';
