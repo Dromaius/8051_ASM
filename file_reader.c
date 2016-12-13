@@ -6,6 +6,8 @@
 #include <dlfcn.h>
 #include <stdio.h>
 #include "API_header.h"
+
+#define BUFFER_SIZE 1024
 typedef void (*writeROM)(uint16_t, uint8_t, uint32_t);
 typedef void (*writeRAM)(uint8_t, uint8_t, uint16_t);
 
