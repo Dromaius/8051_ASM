@@ -1,8 +1,8 @@
 /*includes*/
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
+#include <stdint.h>/*uint<X>_t*/
+#include <stdlib.h>/*malloc*/
+#include <stdbool.h>/*bool*/
+#include <string.h>/*memcpy*/
 
 #include "8051_ASM.h"
 #include "API_header.h"
@@ -99,36 +99,21 @@ API_HIDE void time(uint8_t wait)
 		}
 	}
 }
-
+/*Create interpreter functions*/
 #define ASM_COMMAND(opcode,command) API_HIDE void func_##opcode(){command; }
 #define seperator
 #include "8051_ASM_list.h"
 #undef seperator
 #undef ASM_COMMAND
 
-
-
+/*Functionpointer Array of all functionpointers of the interpreter*/
 API_HIDE_var const exec_func pointers[256]={
 #define ASM_COMMAND(opcode,command) func_##opcode
 #define seperator ,
 #include "8051_ASM_list.h"
 #undef seperator
 #undef ASM_COMMAND
-}
-
-API_HIDE char Int2Char(uint8_t parse) 
-{
-    if(0 <=parse <= 9) return parse + '0';
-	else if(0x0A <= parse <= 0x0F) return parse + 'A' - 10;
-	else return 0;
-}
-API_HIDE uint8_t Char2Int(char hex)
-{
-	if( '0' <= hex <= '9') return hex - '0';
-	else if('A' <= hex <= 'F') return hex - 'A' + 10;
-	else if( 'a' <= hex <= 'f') return hex - 'a' + 10;
-	else return 255;
-}
+};
 
 API_SHOW void write_EEPROM(uint16_t address, uint8_t *data, uint32_t lenght) 
 {
