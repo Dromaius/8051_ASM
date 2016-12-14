@@ -27,7 +27,48 @@ API_HIDE uint8_t Char2Int(char hex)
 
 
 API_SHOW void read_IntelHEX(void* ROM,void* RAM,char* file){
-
+	FILE in_file=fopen(file,"rb");
+	char mode=0;
+	uint8_t parsed;
+	uint8_t lenght;
+	uint16_t address;
+	char buffer[BUFFER_SIZE];
+	char* buffer_ptr;
+	char* target_ptr;
+	while(buffer_ptr++ < &buffer[BUFFER_SIZE]){
+		if(buffer_ptr==':') mode=0;
+		else if((parsed=Char2Int(*buffer_ptr))!=255){
+			switch(mode++){
+				case 0:
+					lenght=parsed<<4;
+					break;
+				case 1:
+					lenght=parsed;
+					break;
+				case 2:
+				case 3:
+				case 4:
+				case 5:
+					address=parsed<<(4*(6-mode));
+					break;
+				case 7:
+					if(*buffer_ptr==1) return;
+					break;
+				case 8:
+					target_ptr=parsed<<4
+					break;
+				case 9:
+					target_ptr or= parsed
+					if(lenght !größer! 0)mode = 7;
+					else mode = 255;
+					break;
+				case 7:
+				case 255:
+				default:
+					break;
+			}
+		}
+	}
 }
 
 API_SHOW void write_IntelHEX(void* ROM,void* RAM,char* file){
