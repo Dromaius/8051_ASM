@@ -7,6 +7,13 @@
 #include <stdio.h>
 #include "API_header.h"
 
+//get size
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+
+
 #define BUFFER_SIZE 1024
 typedef void (*writeROM)(uint16_t, uint8_t, uint32_t);
 typedef void (*writeRAM)(uint8_t, uint8_t, uint16_t);
@@ -26,46 +33,73 @@ API_HIDE uint8_t Char2Int(char hex)
 }
 
 
-API_SHOW void read_IntelHEX(void* ROM,void* RAM,char* file){
+API_SHOW void read_IntelHEX(void* ROM,char* file){
 	FILE in_file=fopen(file,"rb");
-	char mode=0;
-	uint8_t parsed;
-	uint8_t lenght;
+	char mode = 0;
+	uint8_t parsed,lenght,checksum;
 	uint16_t address;
 	char buffer[BUFFER_SIZE];
 	char* buffer_ptr;
 	char* target_ptr;
-	while(buffer_ptr++ < &buffer[BUFFER_SIZE]){
-		if(buffer_ptr==':') mode=0;
-		else if((parsed=Char2Int(*buffer_ptr))!=255){
-			switch(mode++){
-				case 0:
-					lenght=parsed<<4;
-					break;
-				case 1:
-					lenght=parsed;
-					break;
-				case 2:
-				case 3:
-				case 4:
-				case 5:
-					address=parsed<<(4*(6-mode));
-					break;
-				case 7:
-					if(*buffer_ptr==1) return;
-					break;
-				case 8:
-					target_ptr=parsed<<4
-					break;
-				case 9:
-					target_ptr or= parsed
-					if(lenght !größer! 0)mode = 7;
-					else mode = 255;
-					break;
-				case 7:
-				case 255:
-				default:
-					break;
+	struct stat file_disc;
+	fstat(in_file, &file_disc);
+	for(int size = file_disc.st_size;size;){
+		if(size>=1024){
+			fread(buffer_ptr = buffer,BUFFER_SIZE,1,in_file);
+			size -= BUFFER_SIZE;
+		}
+		else{
+			fread(buffer_ptr = &buffer[BUFFER_SIZE-size],size,1,in_file);
+			size = 0;
+		}
+		while(buffer_ptr++ < &buffer[BUFFER_SIZE]){
+			if(buffer_ptr == ':') mode=0;
+			else if((parsed=Char2Int(*buffer_ptr))!=255){
+				switch(mode++){
+					case 0:
+						lenght = parsed << 4;
+						break;
+					case 1:
+						lenght |= parsed;
+						checksum = lenght;
+						break;
+					case 2:
+						address = 0;
+					case 3:
+					case 4:
+					case 5:
+						address|=parsed<<(4*(6-mode));
+						checksum -= address + (address>>8);
+						break;
+					case 7:
+						if(parsed==1){
+							mode += (252-8);
+							target_ptr = NULL;
+							address = 0;
+						}
+						break;
+					case 8:
+						*target_ptr = parsed << 4
+						break;
+					case 9:
+						*target_ptr |= parsed
+						checksum-=*(target_ptr++);
+						if(--lenght > 0)mode = 7;
+						else mode += (252-10);
+						break;
+					case 253:
+						if(!(checksum&0x0F==parsed)) return;
+						break;
+					case 254:
+						if(!(checksum&0xF0==parsed<<4)) return;
+						else if((target_ptr==NULL)&&(address==0)) return;
+						break;
+					case 6:
+					case 255:
+					default:
+						mode--;
+						break;
+				}
 			}
 		}
 	}
