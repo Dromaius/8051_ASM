@@ -35,8 +35,7 @@ API_HIDE uint8_t Char2Int(char hex)
 
 API_SHOW void read_IntelHEX(void* ROM,char* file){
 	FILE in_file=fopen(file,"rb");
-	char mode = 0;
-	uint8_t parsed,lenght,checksum;
+	uint8_t parsed,lenght,checksum,mode = 0;
 	uint16_t address;
 	char buffer[BUFFER_SIZE];
 	char* buffer_ptr;
@@ -53,7 +52,7 @@ API_SHOW void read_IntelHEX(void* ROM,char* file){
 			size = 0;
 		}
 		while(buffer_ptr++ < &buffer[BUFFER_SIZE]){
-			if(buffer_ptr == ':') mode=0;
+			if(*buffer_ptr == ':') mode=0;
 			else if((parsed=Char2Int(*buffer_ptr))!=255){
 				switch(mode++){
 					case 0:
@@ -79,10 +78,10 @@ API_SHOW void read_IntelHEX(void* ROM,char* file){
 						}
 						break;
 					case 8:
-						*target_ptr = parsed << 4
+						*target_ptr = parsed << 4;
 						break;
 					case 9:
-						*target_ptr |= parsed
+						*target_ptr |= parsed;
 						checksum-=*(target_ptr++);
 						if(--lenght > 0)mode = 7;
 						else mode += (252-10);
