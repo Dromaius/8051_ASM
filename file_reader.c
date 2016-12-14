@@ -33,14 +33,15 @@ API_HIDE uint8_t Char2Int(char hex)
 }
 
 
-API_SHOW void read_IntelHEX(void* ROM,char* file){
-	FILE in_file=fopen(file,"rb");
+API_SHOW bool read_IntelHEX(void* ROM,char* file){
+	FILE* in_file;
 	uint8_t parsed,lenght,checksum,mode = 0;
 	uint16_t address;
 	char buffer[BUFFER_SIZE];
 	char* buffer_ptr;
 	char* target_ptr;
 	struct stat file_disc;
+	if(!(in_file=fopen(file,"rb"))) return false;
 	fstat(in_file, &file_disc);
 	for(int size = file_disc.st_size;size;){
 		if(size>=1024){
@@ -50,6 +51,7 @@ API_SHOW void read_IntelHEX(void* ROM,char* file){
 		else{
 			fread(buffer_ptr = &buffer[BUFFER_SIZE-size],size,1,in_file);
 			size = 0;
+			fclose(in_file);
 		}
 		while(buffer_ptr++ < &buffer[BUFFER_SIZE]){
 			if(*buffer_ptr == ':') mode=0;
@@ -87,11 +89,11 @@ API_SHOW void read_IntelHEX(void* ROM,char* file){
 						else mode += (252-10);
 						break;
 					case 253:
-						if(!(checksum&0x0F==parsed)) return;
+						if(!(checksum&0x0F==parsed)) return false;
 						break;
 					case 254:
-						if(!(checksum&0xF0==parsed<<4)) return;
-						else if((target_ptr==NULL)&&(address==0)) return;
+						if(!(checksum&0xF0==parsed<<4)) return false;
+						else if((target_ptr==NULL)&&(address==0)) return true;
 						break;
 					case 6:
 					case 255:
