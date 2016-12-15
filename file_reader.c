@@ -74,7 +74,7 @@ API_SHOW bool read_IntelHEX(void* ROM,char* file){
 						break;
 					case 7:
 						if(parsed==1){
-							mode += (252-8);
+							mode += (253-8);
 							target_ptr = NULL;
 							address = 0;
 						}
@@ -86,7 +86,7 @@ API_SHOW bool read_IntelHEX(void* ROM,char* file){
 						*target_ptr |= parsed;
 						checksum-=*(target_ptr++);
 						if(--lenght > 0)mode = 7;
-						else mode += (252-10);
+						else mode += (253-10);
 						break;
 					case 253:
 						if(!(checksum&0x0F==parsed)) return false;
